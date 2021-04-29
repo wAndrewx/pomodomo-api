@@ -1,0 +1,41 @@
+{
+  "name": "pomodomo-api",
+  "version": "1.0.0",
+  "description": "A backend exposing an API for [pomodomo-frontend](https://github.com/khoaHyh/pomodomo-frontend)",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/khoaHyh/pomodomo-api.git"
+  },
+  "author": "@khoaHyh @wAndrewx",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/khoaHyh/pomodomo-api/issues"
+  },
+  "homepage": "https://github.com/khoaHyh/pomodomo-api#readme",
+  "dependencies": {
+    "axios": "^0.21.1",
+    "bad-words": "^3.0.4",
+    "bcrypt": "^5.0.1",
+    "connect-mongo": "^4.4.1",
+    "cookie-parser": "^1.4.5",
+    "cors": "^2.8.5",
+    "dotenv": "^8.2.0",
+    "express": "^4.17.1",
+    "express-session": "^1.17.1",
+    "mongodb": "^3.6.6",
+    "mongoose": "^5.12.7",
+    "passport": "^0.4.1",
+    "passport-local": "^1.0.0"
+  },
+  "devDependencies": {
+    "chai": "^4.3.4",
+    "chai-http": "^4.3.0",
+    "cross-env": "^7.0.3",
+    "mocha": "^8.3.2",
+    "nodemon": "^2.0.7"
+  }
+}
