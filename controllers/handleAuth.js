@@ -12,6 +12,7 @@ const register = async (req, res, next) => {
     if (!user) {
       return res.status(409).json({ success: false, message: info.message });
     }
+    console.log(`${user} successfully registered.`);
     return res.status(201).json({
       success: true,
       message: info.message,
@@ -28,6 +29,8 @@ const login = async (req, res, next) => {
     }
     req.logIn(user, (err) => {
       if (err) return next(err);
+
+      console.log(`${user} successfully authenticated.`);
       return res.status(200).json({
         success: true,
         message: info.message,
@@ -46,6 +49,7 @@ const logout = (req, res) => {
       .json({ message: "No user session to unauthenticate." });
   }
   req.logout();
+  console.log(`${user} successfully unauthenticated.`);
   res.status(200).json({ message: "Unauthenticated." });
 };
 

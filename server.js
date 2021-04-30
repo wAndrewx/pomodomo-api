@@ -3,6 +3,7 @@ const express = require("express");
 const app = express();
 const session = require("express-session");
 const cookieParser = require("cookie-parser");
+const logger = require("morgan");
 const cors = require("cors");
 const MongoStore = require("connect-mongo");
 const passport = require("passport");
@@ -22,11 +23,8 @@ auth(passport);
 // Enable cors
 app.use(cors());
 
-// Implement a Root-Level Request Logger Middleware
-app.use((req, res, next) => {
-  console.log(`${req.method} ${req.path} - ${req.ip}`);
-  next();
-});
+// Use HTTP request logger middleware
+app.use(logger("dev"));
 
 // Parses cookies attached tto client request object
 app.use(cookieParser());
