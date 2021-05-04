@@ -23,22 +23,22 @@ module.exports = (passport) => {
   passport.use(
     "register",
     new LocalStrategy(async (username, password, done) => {
+      // Remove whitespaces in username
+      let trimUsername = username.trim();
+
+      if (filter.isProfane(username)) {
+        return done(null, false, {
+          httpCode: 422,
+          message: "Username must not contain profanity.",
+        });
+      } else if (trimUsername.length >= 50) {
+        return done(null, false, {
+          httpCode: 422,
+          message: "Username cannot be 50 characters or longer.",
+        });
+      }
+
       try {
-        // Remove whitespaces in username
-        let trimUsername = username.trim();
-
-        if (filter.isProfane(username)) {
-          return done(null, false, {
-            httpCode: 422,
-            message: "Username must not contain profanity.",
-          });
-        } else if (trimUsername.length >= 50) {
-          return done(null, false, {
-            httpCode: 422,
-            message: "Username cannot be 50 characters or longer.",
-          });
-        }
-
         let user = await User.findOne({ username: trimUsername });
         const pwned = await utils.haveTheyBeenPwned(password, done);
 
