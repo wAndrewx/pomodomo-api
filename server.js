@@ -26,10 +26,10 @@ app.use(cors());
 // Use HTTP request logger middleware
 app.use(logger("dev"));
 
-// Parses cookies attached tto client request object
+// Parses cookies attached to client request object
 app.use(cookieParser());
 
-// Deal with incoming data in the body off the request object
+// Deal with incoming data in the body of the request object
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
