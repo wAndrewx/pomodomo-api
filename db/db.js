@@ -1,17 +1,10 @@
 require("dotenv").config();
-const mongoose = require("mongoose");
+const { Pool } = require("pg");
 
-const connectDB = async () => {
-  try {
-    conn = await mongoose.connect(process.env.MONGO_URI, {
-      useCreateIndex: true,
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-      useFindAndModify: false,
-    });
-  } catch (error) {
-    console.error(`Initial database connection error: ${error}`);
-  }
-};
+const isProduction = process.env.NODE_ENV === "production";
+const connectionString = `postgresql://${process.env.DB_USER}:${process.env.DB_PASSWORD}@${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_DATABASE}`;
+const pool = new Pool({
+  connectionString: isProduction ? process.env.DATABASE_URL : connectionString,
+});
 
-module.exports = connectDB;
+module.exports = { pool };

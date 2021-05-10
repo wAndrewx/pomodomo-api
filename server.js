@@ -5,20 +5,18 @@ const session = require("express-session");
 const cookieParser = require("cookie-parser");
 const logger = require("morgan");
 const cors = require("cors");
-const MongoStore = require("connect-mongo");
+//const MongoStore = require("connect-mongo");
 const passport = require("passport");
-const sessionStore = MongoStore.create({ mongoUrl: process.env.MONGO_URI });
+//const sessionStore = MongoStore.create({ mongoUrl: process.env.MONGO_URI });
 const auth = require("./auth");
-const connectDB = require("./db/db");
+//const connectDB = require("./db/db");
 const authRoutes = require("./routes/auth");
 
 // Connect to MongoDB
-connectDB();
+//connectDB();
 
 // Allow app to use passport strategies
 auth(passport);
-
-/**** START OF MIDDLEWARE ****/
 
 // Enable cors
 app.use(cors());
@@ -44,7 +42,7 @@ app.use(
       maxAge: 1000 * 60 * 60 * 24 * 7, // Cookie expires in 1 week
     },
     key: "express.sid",
-    store: sessionStore,
+    //store: sessionStore,
   })
 );
 
@@ -61,8 +59,6 @@ app.use((err, req, res, next) => {
   console.log(err);
   res.json({ error: `${err}` });
 });
-
-/**** END OF MIDDLEWARE ****/
 
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
