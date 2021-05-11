@@ -3,6 +3,7 @@ const bcrypt = require("bcrypt");
 const Filter = require("bad-words");
 const filter = new Filter();
 const { pool } = require("../db/db");
+const utils = require("../utils/utils");
 
 filter.addWords("badword");
 
@@ -12,12 +13,14 @@ const register = async (req, res, next) => {
 
   if (!email || !username || !password) {
     return res.status(400).json({ message: "All fields must be completed." });
-  }
-
-  if (filter.isProfane(username)) {
+  } else if (filter.isProfane(username)) {
     return res
       .status(422)
       .json({ message: "Username must not contain profanity." });
+  } else if (!utils.passwordRegexCheck(password)) {
+    return res
+      .status(422)
+      .json({ message: "Password must meet all requirements." });
   }
 
   try {
