@@ -2,18 +2,14 @@ require("dotenv").config();
 const express = require("express");
 const app = express();
 const session = require("express-session");
+const pgSession = require("connect-pg-simple")(session);
 const cookieParser = require("cookie-parser");
 const logger = require("morgan");
 const cors = require("cors");
-//const MongoStore = require("connect-mongo");
 const passport = require("passport");
-//const sessionStore = MongoStore.create({ mongoUrl: process.env.MONGO_URI });
 const auth = require("./auth");
-//const connectDB = require("./db/db");
 const authRoutes = require("./routes/auth");
-
-// Connect to MongoDB
-//connectDB();
+const { pool } = require("./db/db");
 
 // Allow app to use passport strategies
 auth(passport);
@@ -34,6 +30,10 @@ app.use(express.urlencoded({ extended: true }));
 // Set up our express app to use session
 app.use(
   session({
+    store: new pgSession({
+      pool: pool,
+      tableName: "session",
+    }),
     secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
@@ -42,7 +42,6 @@ app.use(
       maxAge: 1000 * 60 * 60 * 24 * 7, // Cookie expires in 1 week
     },
     key: "express.sid",
-    //store: sessionStore,
   })
 );
 

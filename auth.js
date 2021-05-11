@@ -2,16 +2,17 @@ const LocalStrategy = require("passport-local");
 const bcrypt = require("bcrypt");
 const User = require("./models/user");
 const utils = require("./utils/utils");
+const { pool } = require("./db/db");
 
 module.exports = (passport) => {
   // Convert object contents into a key
-  passport.serializeUser((user, done) => done(null, user._id));
+  passport.serializeUser((user, done) => done(null, user.id));
 
   // Convert key into original object and retrieve object contents
   passport.deserializeUser((id, done) => {
-    User.findById(id, (err, user) => {
+    pool.query(`SELECT * FROM users WHERE id = $1`, [id], (err, results) => {
       if (err) return done(err);
-      done(null, user);
+      return done(null, results.rows[0]);
     });
   });
 
@@ -20,22 +21,27 @@ module.exports = (passport) => {
     "login",
     new LocalStrategy(async (username, password, done) => {
       try {
-        const user = await User.findOne({ username: username });
-        console.log(`User ${username} attempted to log in`);
+        // Query for user by username in database
+        const queryUsername = await pool.query(
+          `SELECT * FROM users WHERE username = $1`,
+          [username]
+        );
 
-        if (!user) {
-          console.log(`User ${username} doesn't exist.`);
+        // User doesn't exist if no user was found
+        if (queryUsername.rows === 0) {
           return done(null, false, {
-            message: "Invalid username or password.",
+            message: "Invalid credentials.",
           });
         }
 
+        const user = queryUsername.rows[0];
+
+        // Compare password entered and password in database
         const validated = await bcrypt.compare(password, user.password);
 
         if (!validated) {
-          console.log("Invalid password");
           return done(null, false, {
-            message: "Invalid username or password.",
+            message: "Invalid credentials.",
           });
         }
 

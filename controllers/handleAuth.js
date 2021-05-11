@@ -20,48 +20,51 @@ const register = async (req, res, next) => {
       .json({ message: "Username must not contain profanity." });
   }
 
-  // Hash password before saving it in database
-  const hashedPassword = await bcrypt.hash(password, 12);
+  try {
+    // Hash password before saving it in database
+    const hashedPassword = await bcrypt.hash(password, 12);
 
-  // Check database for existing user by email
-  pool.query(
-    `SELECT * FROM users
+    // Check database for existing user by email
+    const checkResults = await pool.query(
+      `SELECT * FROM users
     WHERE email = $1`,
-    [email],
-    (err, results) => {
-      if (err) {
-        return res.status(500).json({ error: "Unexpected error." });
-      }
+      [email]
+    );
 
-      console.log(results.rows);
-
-      if (results.rows.length > 0) {
-        return res.status(409).json({
-          message: `There is already an account with the email: '${email}'`,
-        });
-      }
-
-      // Insert user into database
-      pool.query(
-        `INSERT INTO users (username, email, password)
-        VALUES ($1, $2, $3)
-        RETURNING id, password`,
-        [username, email, hashedPassword],
-        (err, resuts) => {
-          if (err) {
-            return res.status(500).json({ error: "Unexpected error." });
-          }
-          console.log(results.rows);
-          res
-            .status(201)
-            .json({ message: `Check for verification email for ${email}` });
-        }
-      );
+    if (!checkResults) {
+      return res.status(500).json({ message: "Unexpected error." });
     }
-  );
+
+    if (checkResults.rows.length > 0) {
+      return res.status(409).json({
+        message: `There is already an account with the email: '${email}'`,
+      });
+    }
+
+    // Insert user into database
+    const insertResults = await pool.query(
+      `INSERT INTO users (username, email, password)
+    VALUES ($1, $2, $3)
+    RETURNING id, username, email`,
+      [username, email, hashedPassword]
+    );
+
+    if (!insertResults) {
+      return res.status(500).json({ message: "Unexpected error." });
+    }
+
+    //console.log("insertResultsRows:", insertResults.rows);
+
+    res
+      .status(201)
+      .json({ message: `Check for verification email for ${email}` });
+  } catch (error) {
+    console.log(error);
+    return next(error);
+  }
 };
 
-const login = async (req, res, next) => {
+const login = (req, res, next) => {
   passport.authenticate("login", (err, user, info) => {
     if (err) return next(err);
     if (!user) {
@@ -70,7 +73,6 @@ const login = async (req, res, next) => {
     req.logIn(user, (err) => {
       if (err) return next(err);
 
-      console.log(`${user} successfully authenticated.`);
       return res.status(200).json({
         success: true,
         message: info.message,
@@ -88,8 +90,8 @@ const logout = (req, res) => {
       .status(200)
       .json({ message: "No user session to unauthenticate." });
   }
+  console.log("req.user:", req.user);
   req.logout();
-  console.log(`${req.user.username} successfully unauthenticated.`);
   res.status(200).json({ message: "Unauthenticated." });
 };
 
