@@ -1,3 +1,4 @@
+const crypto = require("crypto");
 const passport = require("passport");
 const bcrypt = require("bcrypt");
 const Filter = require("bad-words");
@@ -24,9 +25,6 @@ const register = async (req, res, next) => {
   }
 
   try {
-    // Hash password before saving it in database
-    const hashedPassword = await bcrypt.hash(password, 12);
-
     // Check database for existing user by email
     const checkResults = await pool.query(
       `SELECT * FROM users
@@ -44,23 +42,57 @@ const register = async (req, res, next) => {
       });
     }
 
+    // Create hash for password and email
+    const hashedPassword = await bcrypt.hash(password, 12);
+    const emailHash = crypto.randomBytes(16).toString("hex");
+
+    utils.sendEmail(email, emailHash, username);
+
     // Insert user into database
     const insertResults = await pool.query(
-      `INSERT INTO users (username, email, password)
-    VALUES ($1, $2, $3)
-    RETURNING id, username, email`,
-      [username, email, hashedPassword]
+      `INSERT INTO users (username, email, email_hash, password)
+    VALUES ($1, $2, $3, $4)
+    RETURNING id, username, email, verified`,
+      [username, email, emailHash, hashedPassword]
     );
 
     if (!insertResults) {
       return res.status(500).json({ message: "Unexpected error." });
     }
 
-    //console.log("insertResultsRows:", insertResults.rows);
+    console.log("insertResultsRows:", insertResults.rows);
 
     res
       .status(201)
       .json({ message: `Check for verification email for ${email}` });
+  } catch (error) {
+    console.log(error);
+    return next(error);
+  }
+};
+
+const verifyEmail = async (req, res, next) => {
+  const { hash } = req.params;
+  try {
+    // Find user by email hash and update their verified state
+    const updateAccount = await pool.query(
+      `UPDATE users 
+    SET verified = TRUE
+    WHERE email_hash = $1
+    RETURNING verified
+      `,
+      [hash]
+    );
+
+    if (
+      !updateAccount ||
+      updateAccount.rows.length === 0 ||
+      !updateAccount.rows[0].verified
+    ) {
+      return res.status(409).json({ message: "Unable to activate account." });
+    }
+
+    res.status(204).send();
   } catch (error) {
     console.log(error);
     return next(error);
@@ -107,4 +139,4 @@ const sessionExists = (req, res) => {
   });
 };
 
-module.exports = { register, login, logout, sessionExists };
+module.exports = { register, verifyEmail, login, logout, sessionExists };

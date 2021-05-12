@@ -30,6 +30,10 @@ module.exports = (passport) => {
           return done(null, false, {
             message: "Invalid credentials.",
           });
+        } else if (!queryUsername.rows[0].verified) {
+          return done(null, false, {
+            message: "Please verify your account to login.",
+          });
         }
 
         const user = queryUsername.rows[0];

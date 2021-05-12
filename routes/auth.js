@@ -6,6 +6,9 @@ const handleAuth = require("../controllers/handleAuth");
 // Register route
 router.post("/register", handleAuth.register);
 
+// Verify email route
+router.get("/verification/:hash", handleAuth.verifyEmail);
+
 // Login route
 router.post("/login", utils.prohibitAuthenticated, handleAuth.login);
 

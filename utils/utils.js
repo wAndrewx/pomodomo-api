@@ -1,5 +1,5 @@
-const crypto = require("crypto");
-const axios = require("axios");
+require("dotenv").config();
+const nodemailer = require("nodemailer");
 
 // Middleware to check if a user is authenticated
 const ensureAuthenticated = (req, res, next) => {
@@ -21,8 +21,47 @@ const passwordRegexCheck = (password) => {
   return regex.test(password);
 };
 
+// Send a verification email to the newly registered account's email address
+const sendEmail = (email, hash, username) => {
+  // create reusable transporter object using the default SMTP transport
+  let transporter = nodemailer.createTransport({
+    service: "Gmail",
+    auth: {
+      user: process.env.GMAIL_EMAIL,
+      pass: process.env.GMAIL_PW,
+    },
+  });
+
+  //const link = `http://localhost:3000/confirmation/${hash}`;
+  const link = `https://www.pomodomo.ca/verification/${hash}`;
+
+  let mailOptions = {
+    from: `"pomodomo 👻" <${process.env.GMAIL_EMAIL}>`, // sender address
+    to: email, // list of receivers
+    subject: "[CONFIRM] verify account for pomodomo ✔", // Subject line
+    html: `Hello ${username},<br> Please click on the link to verify your email.<br><a href="${link}">Click here to verify</a>`, // html body
+  };
+
+  // send mail with defined transport object
+  transporter.sendMail(mailOptions, (err, res) => {
+    if (err) {
+      console.log(err);
+      return res.status(500).json({
+        message:
+          "Technical Issue! Please try again later or request assistance.",
+      });
+    }
+
+    console.log("Email sent.");
+    res.status(200).json({
+      message: `A verication email has been sent to ${email}. Please check your inbox and click on the link or click resend.`,
+    });
+  });
+};
+
 module.exports = {
   ensureAuthenticated,
   prohibitAuthenticated,
   passwordRegexCheck,
+  sendEmail,
 };
