@@ -38,3 +38,5 @@ $ npm test
   * Mocha
   * Chai
   * Passport.js
+  * Digital Ocean Ubuntu Droplet
+  * Nginx
