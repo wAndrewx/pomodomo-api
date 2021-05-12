@@ -2,6 +2,10 @@
 
 A backend exposing an API for [pomodomo](https://github.com/khoaHyh/pomodomo)
 
+## Known Issues
+
+  * Testing currently doesn't work for PostgreSQL databases yet
+
 ## Local development   
 
 #### `Setup`
