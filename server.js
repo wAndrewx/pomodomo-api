@@ -16,7 +16,7 @@ const { pool } = require("./db/db");
 auth(passport);
 
 // Enable cors
-app.use(cors({ origin: "https://pomodomo.ca" }));
+app.use(cors());
 
 // Use HTTP request logger middleware
 app.use(logger("dev"));
@@ -39,8 +39,7 @@ app.use(
     resave: false,
     saveUninitialized: false,
     cookie: {
-      secure: true,
-      httpOnly: false,
+      secure: false,
       maxAge: 1000 * 60 * 60 * 24 * 7, // Cookie expires in 1 week
     },
     key: "express.sid",
