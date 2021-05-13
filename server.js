@@ -69,7 +69,7 @@ app.use((err, req, res, next) => {
 const PORT = process.env.PORT || 8080;
 
 if (process.env.NODE_ENV === "production") {
-  const httpServer = https.createServer(app);
+  const httpServer = http.createServer(app);
 
   httpServer.listen(PORT, () => {
     console.log(`Listening on port ${PORT}`);
