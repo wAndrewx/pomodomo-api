@@ -16,7 +16,8 @@ const { pool } = require("./db/db");
 auth(passport);
 
 // Enable cors
-app.use(cors({ origin: "https://pomodomo.ca" }));
+//app.use(cors({ origin: "https://pomodomo.ca" }));
+app.use(cors());
 
 // Use HTTP request logger middleware
 app.use(logger("dev"));
@@ -28,6 +29,9 @@ app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Give Express knowledge that it's sitting behind a proxy
+app.set("trust proxy");
+
 // Set up our express app to use session
 app.use(
   session({
@@ -38,6 +42,7 @@ app.use(
     secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
+    proxy: true,
     cookie: {
       secure: true,
       httpOnly: false,
