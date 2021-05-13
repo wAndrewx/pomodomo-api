@@ -2,7 +2,7 @@ require("dotenv").config();
 const express = require("express");
 const app = express();
 const fs = require("fs");
-const https = require("https");
+const http = require("http");
 const session = require("express-session");
 const pgSession = require("connect-pg-simple")(session);
 const cookieParser = require("cookie-parser");
@@ -69,10 +69,10 @@ app.use((err, req, res, next) => {
 const PORT = process.env.PORT || 8080;
 
 if (process.env.NODE_ENV === "production") {
-  const httpsServer = https.createServer(credentials, app);
+  const httpServer = https.createServer(app);
 
-  httpsServer.listen(8443, () => {
-    console.log(`Listening on port 8443`);
+  httpServer.listen(PORT, () => {
+    console.log(`Listening on port ${PORT}`);
   });
 } else {
   app.listen(PORT, () => {
