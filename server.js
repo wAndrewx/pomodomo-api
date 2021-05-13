@@ -45,7 +45,8 @@ app.use(
     resave: false,
     saveUninitialized: false,
     cookie: {
-      secure: false,
+      secure: true,
+      httpOnly: false,
       maxAge: 1000 * 60 * 60 * 24 * 7, // Cookie expires in 1 week
     },
     key: "express.sid",
