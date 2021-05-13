@@ -2,6 +2,8 @@
 
 A backend exposing an API for [pomodomo](https://github.com/khoaHyh/pomodomo)
 
+![demo](./assets/app-screenshot.png)
+
 ## Known Issues
 
   * Testing currently doesn't work for PostgreSQL databases yet
@@ -41,7 +43,9 @@ $ npm test
   * Digital Ocean Ubuntu Droplet
   * Nginx
 
-## Backend Architecture
+## App Architecture
+
+![demo](./assets/pomodomo-architecture.png)
 
   * Our backend (server + database) is nested inside a Digital Ocean droplet
   * Requests go through Cloudflare, with Authenticated Origin Pulls
