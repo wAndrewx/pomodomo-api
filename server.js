@@ -14,8 +14,8 @@ const auth = require("./auth");
 const authRoutes = require("./routes/auth");
 const { pool } = require("./db/db");
 
-const privateKey = fs.readFile(process.env.KEY, "utf8");
-const certificate = fs.readFile(process.env.CERT, "utf8");
+const privateKey = fs.readFileSync(process.env.KEY, "utf8");
+const certificate = fs.readFileSync(process.env.CERT, "utf8");
 const credentials = { key: privateKey, cert: certificate };
 
 // Allow app to use passport strategies
