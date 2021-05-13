@@ -71,7 +71,9 @@ const PORT = process.env.PORT || 8080;
 if (process.env.NODE_ENV === "production") {
   const httpsServer = https.createServer(credentials, app);
 
-  httpsServer.listen(8443);
+  httpsServer.listen(8443, () => {
+    console.log(`Listening on port 8443`);
+  });
 } else {
   app.listen(PORT, () => {
     console.log(`Listening on port ${PORT}`);
