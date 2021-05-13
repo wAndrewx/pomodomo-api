@@ -14,8 +14,8 @@ const auth = require("./auth");
 const authRoutes = require("./routes/auth");
 const { pool } = require("./db/db");
 
-const privateKey = fs.readFileSync(process.env.KEY, "utf8");
-const certificate = fs.readFileSync(process.env.CERT, "utf8");
+const privateKey = fs.readFile(process.env.KEY, "utf8");
+const certificate = fs.readFile(process.env.CERT, "utf8");
 const credentials = { key: privateKey, cert: certificate };
 
 // Allow app to use passport strategies
@@ -70,10 +70,8 @@ app.use((err, req, res, next) => {
 const PORT = process.env.PORT || 8080;
 
 if (process.env.NODE_ENV === "production") {
-  const httpServer = http.createServer(app);
   const httpsServer = https.createServer(credentials, app);
 
-  httpServer.listen(8080);
   httpsServer.listen(8443);
 } else {
   app.listen(PORT, () => {
