@@ -40,3 +40,10 @@ $ npm test
   * Passport.js
   * Digital Ocean Ubuntu Droplet
   * Nginx
+
+## Backend Architecture
+
+  * Our backend (server + database) is nested inside a Digital Ocean droplet
+  * Requests go through Cloudflare, with Authenticated Origin Pulls
+      * Authenticated Origin Pulls allow our droplet to validate that a web request is coming from Cloudflare
+  * After going through Cloudflare they then go through Nginx, our reverse proxy, which then gets to our server
