@@ -125,7 +125,6 @@ const logout = (req, res) => {
       .status(200)
       .json({ message: "No user session to unauthenticate." });
   }
-  console.log("req.user:", req.user);
   req.logout();
   res.status(200).json({ message: "Unauthenticated." });
 };
