@@ -2,7 +2,6 @@ require("dotenv").config();
 const express = require("express");
 const app = express();
 const fs = require("fs");
-const http = require("http");
 const https = require("https");
 const session = require("express-session");
 const pgSession = require("connect-pg-simple")(session);
