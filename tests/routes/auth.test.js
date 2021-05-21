@@ -2,10 +2,11 @@ require("dotenv").config();
 const chai = require("chai");
 const { expect } = chai;
 const chaiHttp = require("chai-http");
-const mongoose = require("mongoose");
 const { app } = require("../../server");
 const seed = require("../seed");
-const User = require("../../models/user");
+const { pool } = require("../../db/db");
+const bcrypt = require("bcrypt");
+const crypto = require("crypto");
 
 chai.use(chaiHttp);
 
@@ -13,33 +14,43 @@ describe("Auth route", function () {
   // Clear database and register seed users for test cases
   before(async function () {
     try {
-      await User.deleteMany({});
-      const userArray = [seed.existingUser, seed.anotherUser, seed.ghostUser];
+      // truncate users table, restarts sequence column (id)
+      await pool.query("TRUNCATE users RESTART IDENTITY");
+      // truncate sessions table, restarts sequence column (id)
+      await pool.query("TRUNCATE session RESTART IDENTITY");
 
-      // Loops through our userArray and makes async/await calls to register each account
-      (async function registerUsers() {
-        for (let i = 0; i < userArray.length; i++) {
-          await chai.request(app).post("/register").send(userArray[i]);
-        }
-      })();
+      const hashedPassword = await bcrypt.hash(seed.validatedPassword, 12);
+      const emailHash = crypto.randomBytes(16).toString("hex");
+
+      await pool.query(
+        `INSERT INTO users (username, email, email_hash, password, verified)
+        VALUES ($1, $2, $3, $4, TRUE)`,
+        [
+          seed.existingUser.username,
+          seed.existingUser.email,
+          emailHash,
+          hashedPassword,
+        ]
+      );
     } catch (error) {
       console.log(error);
     }
   });
 
   describe("POST /register", function () {
-    it("should return 201 and user's id if successful", async function () {
+    it(`should return 201 and "Check for verification email for ${seed.newUser.email}"`, async function () {
       try {
         const successRegisterRes = await chai
           .request(app)
           .post("/register")
           .send(seed.newUser);
         expect(successRegisterRes.status).to.equal(201);
-        expect(successRegisterRes.body).to.have.property("userId");
-
-        await chai.request(app).get("/logout");
+        expect(successRegisterRes.body)
+          .to.have.property("message")
+          .equal(`Check for verification email for ${seed.newUser.email}`);
       } catch (error) {
         console.log(error);
+        expect(error).to.be.null();
       }
     });
 
@@ -52,10 +63,11 @@ describe("Auth route", function () {
         expect(existsRegisterRes.status).to.equal(409);
       } catch (error) {
         console.log(error);
+        expect(error).to.be.null();
       }
     });
 
-    it("should return 422 if there are missing credentials", async function () {
+    it("should return 400 if there are missing credentials", async function () {
       try {
         const credMissRegisterRes = await chai
           .request(app)
@@ -64,40 +76,24 @@ describe("Auth route", function () {
             username: "",
             password: "",
           });
-        expect(credMissRegisterRes.status).to.equal(422);
+        expect(credMissRegisterRes.status).to.equal(400);
         expect(credMissRegisterRes.body)
           .to.have.property("message")
-          .equal("Missing credentials");
+          .equal("All fields must be completed.");
       } catch (error) {
         console.log(error);
+        expect(error).to.be.null();
       }
     });
 
     /** USERNAME VALIDATION TESTS START **/
-    it("should return 422 if username length >= 50 characters ", async function () {
-      try {
-        const longUsernameRegisterRes = await chai
-          .request(app)
-          .post("/register")
-          .send({
-            username: "324uw0g98u24qorjdslgj92qu3r98uf98sug829u4q98upsdgu",
-            password: seed.validatedPassword,
-          });
-        expect(longUsernameRegisterRes.status).to.equal(422);
-        expect(longUsernameRegisterRes.body)
-          .to.have.property("message")
-          .equal("Username cannot be 50 characters or longer.");
-      } catch (error) {
-        console.log(error);
-      }
-    });
-
     it("should return 422 if the username contains profanity", async function () {
       try {
         const profanityRegisterRes = await chai
           .request(app)
           .post("/register")
           .send({
+            email: "badword@mail.com",
             username: "badword",
             password: seed.validatedPassword,
           });
@@ -107,51 +103,49 @@ describe("Auth route", function () {
           .equal("Username must not contain profanity.");
       } catch (error) {
         console.log(error);
+        expect(error).to.be.null();
       }
     });
     /** USERNAME VALIDATION TESTS END **/
 
     /** PASSWORD VALIDATION TESTS START **/
     it("should return 422 if password doesn't pass regex checks", async function () {
-      const regexRegisterRes = await chai.request(app).post("/register").send({
-        username: "missingSpecialChar",
-        password: "Password12",
-      });
-      expect(regexRegisterRes.status).to.equal(422);
-      expect(regexRegisterRes.body)
-        .to.have.property("message")
-        .equal(
-          "Password must contain at least 8 characters and must contain at least one lowercase letter, one uppercase letter, one numeric digit, and one special character."
-        );
-    });
-
-    it("should return 422 if password was found in database breach", async function () {
-      const regexRegisterRes = await chai.request(app).post("/register").send({
-        username: "myPasswordWasBreached",
-        password: "Password!2",
-      });
-      expect(regexRegisterRes.status).to.equal(422);
-      expect(regexRegisterRes.body)
-        .to.have.property("message")
-        .equal("Password has been found in database breach.");
+      try {
+        const regexRegisterRes = await chai
+          .request(app)
+          .post("/register")
+          .send({
+            email: "regexFail@mail.com",
+            username: "missingSpecialChar",
+            password: "Password12",
+          });
+        expect(regexRegisterRes.status).to.equal(422);
+        expect(regexRegisterRes.body)
+          .to.have.property("message")
+          .equal("Password must meet all requirements.");
+      } catch (error) {
+        console.log(error);
+        expect(error).to.be.null();
+      }
     });
     /** PASSWORD VALIDATION TESTS END **/
   });
 
   describe("POST /login", function () {
-    it("should return 200 and user's id if user successfully logs in", async function () {
+    it("should return 200 and success property equals true in response body", async function () {
       try {
-        const successLoginRes = await chai
-          .request(app)
-          .post("/login")
-          .send(seed.existingUser);
+        const successLoginRes = await chai.request(app).post("/login").send({
+          username: seed.existingUser.username,
+          password: seed.existingUser.password,
+        });
 
         expect(successLoginRes.status).to.equal(200);
-        expect(successLoginRes.body).to.have.property("userId");
+        expect(successLoginRes.body).to.have.property("success").equal(true);
 
         await chai.request(app).get("/logout");
       } catch (error) {
         console.log(error);
+        expect(error).to.be.null();
       }
     });
 
@@ -160,21 +154,30 @@ describe("Auth route", function () {
         const credInvalidLoginRes = await chai
           .request(app)
           .post("/login")
-          .send(seed.doesNotExistUser);
+          .send({
+            username: seed.existingUser.username,
+            password: "password",
+          });
         expect(credInvalidLoginRes.status).to.be.equal(401);
       } catch (error) {
         console.log(error);
+        expect(error).to.be.null();
       }
     });
 
     it("should return 200 and a message if user tries to login while authenticated", async function () {
       try {
-        const agent = await chai.request.agent(app);
-        await agent.post("/login").send(seed.existingUser);
+        const agent = chai.request.agent(app);
+        await agent.post("/login").send({
+          username: seed.existingUser.username,
+          password: seed.existingUser.password,
+        });
 
-        const loginWhileAuthRes = await agent
-          .post("/login")
-          .send(seed.existingUser);
+        const loginWhileAuthRes = await agent.post("/login").send({
+          username: seed.existingUser.username,
+          password: seed.existingUser.password,
+        });
+
         expect(loginWhileAuthRes.status).to.equal(200);
         expect(loginWhileAuthRes.body)
           .to.have.property("message")
@@ -183,6 +186,7 @@ describe("Auth route", function () {
         await agent.get("/logout");
       } catch (error) {
         console.log(error);
+        expect(error).to.be.null();
       }
     });
   });
@@ -193,11 +197,15 @@ describe("Auth route", function () {
   describe("GET /home to test user session", function () {
     it("should return 200 if user session exists", async function () {
       try {
-        await agent.post("/login").send(seed.existingUser);
+        await agent.post("/login").send({
+          username: seed.existingUser.username,
+          password: seed.existingUser.password,
+        });
         const authenticatedResponse = await agent.get("/home");
         expect(authenticatedResponse).to.have.status(200);
       } catch (error) {
         console.log(error);
+        expect(error).to.be.null();
       }
     });
 
@@ -207,6 +215,7 @@ describe("Auth route", function () {
         expect(unauthenticatedResponse.status).to.equal(401);
       } catch (error) {
         console.log(error);
+        expect(error).to.be.null();
       }
     });
   });
@@ -214,7 +223,10 @@ describe("Auth route", function () {
   describe("GET /logout to test logout", function () {
     it("should return 200 and 'Unauthenticated' if user logs out", async function () {
       try {
-        await agent.post("/login").send(seed.existingUser);
+        await agent.post("/login").send({
+          username: seed.existingUser.username,
+          password: seed.existingUser.password,
+        });
         const authenticatedResponse = await agent.get("/logout");
         expect(authenticatedResponse).to.have.status(200);
         expect(authenticatedResponse).to.have.property("body");
@@ -223,6 +235,7 @@ describe("Auth route", function () {
           .equal("Unauthenticated.");
       } catch (error) {
         console.log(error);
+        expect(error).to.be.null();
       }
     });
   });
@@ -236,6 +249,7 @@ describe("Auth route", function () {
         .equal("No user session to unauthenticate.");
     } catch (error) {
       console.log(error);
+      expect(error).to.be.null();
     }
   });
 });
