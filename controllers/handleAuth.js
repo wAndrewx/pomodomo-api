@@ -60,8 +60,6 @@ const register = async (req, res, next) => {
       return res.status(500).json({ message: "Unexpected error." });
     }
 
-    console.log("insertResultsRows:", insertResults.rows);
-
     res
       .status(201)
       .json({ message: `Check for verification email for ${email}` });
@@ -111,7 +109,7 @@ const login = (req, res, next) => {
       return res.status(200).json({
         success: true,
         message: info.message,
-        userId: user._id,
+        userId: user.id,
       });
     });
   })(req, res, next);
