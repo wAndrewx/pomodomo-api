@@ -19,7 +19,8 @@ app.use(cache("5 minutes"));
 auth(passport);
 
 // Enable cors
-app.use(cors());
+//app.use(cors({ credentials: true, origin: "https://pomodomo.ca" }));
+app.use(cors({ credentials: true, origin: true }));
 
 // Use HTTP request logger middleware
 app.use(logger("dev"));
