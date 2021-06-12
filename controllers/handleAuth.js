@@ -28,13 +28,17 @@ const register = async (req, res, next) => {
     // Check database for existing user by email
     const checkResults = await pool.query(
       `SELECT * FROM users
-    WHERE email = $1`,
-      [email]
+    WHERE email = $1
+    OR username = $2`,
+      [email, username]
     );
 
     if (!checkResults) {
       return res.status(500).json({ message: "Unexpected error." });
     }
+
+    console.log(checkResults.rowCount);
+    console.log(checkResults);
 
     if (checkResults.rows.length > 0) {
       return res.status(409).json({

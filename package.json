@@ -19,6 +19,7 @@
   },
   "homepage": "https://github.com/khoaHyh/pomodomo-api#readme",
   "dependencies": {
+    "apicache": "^1.6.2",
     "bad-words": "^3.0.4",
     "bcrypt": "^5.0.1",
     "connect-pg-simple": "^6.2.1",
@@ -27,7 +28,6 @@
     "dotenv": "^8.6.0",
     "express": "^4.17.1",
     "express-session": "^1.17.1",
-    "http": "0.0.1-security",
     "morgan": "^1.10.0",
     "nodemailer": "^6.6.0",
     "passport": "^0.4.1",

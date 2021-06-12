@@ -26,7 +26,7 @@ module.exports = (passport) => {
         );
 
         // User doesn't exist if no user was found
-        if (queryUsername.rows === 0) {
+        if (queryUsername.rowCount === 0) {
           return done(null, false, {
             message: "Invalid credentials.",
           });

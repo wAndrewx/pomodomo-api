@@ -1,7 +1,6 @@
 require("dotenv").config();
 const express = require("express");
 const app = express();
-const http = require("http");
 const session = require("express-session");
 const pgSession = require("connect-pg-simple")(session);
 const cookieParser = require("cookie-parser");
@@ -10,7 +9,11 @@ const cors = require("cors");
 const passport = require("passport");
 const auth = require("./auth");
 const authRoutes = require("./routes/auth");
+const profileRoutes = require("./routes/profile");
 const { pool } = require("./db/db");
+const apicache = require("apicache");
+let cache = apicache.middleware;
+app.use(cache("5 minutes"));
 
 // Allow app to use passport strategies
 auth(passport);
@@ -52,6 +55,7 @@ app.use(passport.session());
 
 // Routes
 app.use("/", authRoutes);
+app.use("/profile", profileRoutes);
 
 // Handle errors
 app.use((err, req, res, next) => {
@@ -62,16 +66,8 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 8080;
 
-if (process.env.NODE_ENV === "production") {
-  const httpServer = http.createServer(app);
-
-  httpServer.listen(PORT, () => {
-    console.log(`Listening on port ${PORT}`);
-  });
-} else {
-  app.listen(PORT, () => {
-    console.log(`Listening on port ${PORT}`);
-  });
-}
+app.listen(PORT, () => {
+  console.log(`Listening on port ${PORT}`);
+});
 
 module.exports = { app };
