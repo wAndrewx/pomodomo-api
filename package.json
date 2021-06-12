@@ -19,6 +19,7 @@
   },
   "homepage": "https://github.com/khoaHyh/pomodomo-api#readme",
   "dependencies": {
+    "apicache": "^1.6.2",
     "bad-words": "^3.0.4",
     "bcrypt": "^5.0.1",
     "connect-pg-simple": "^6.2.1",
