@@ -11,9 +11,6 @@ const auth = require("./auth");
 const authRoutes = require("./routes/auth");
 const profileRoutes = require("./routes/profile");
 const { pool } = require("./db/db");
-const apicache = require("apicache");
-let cache = apicache.middleware;
-app.use(cache("5 minutes"));
 
 // Allow app to use passport strategies
 auth(passport);
