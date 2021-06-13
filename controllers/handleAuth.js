@@ -88,7 +88,7 @@ const verifyEmail = async (req, res, next) => {
 
     if (
       !updateAccount ||
-      updateAccount.rows.length === 0 ||
+      updateAccount.rowCount === 0 ||
       !updateAccount.rows[0].verified
     ) {
       return res.status(409).json({ message: "Unable to activate account." });
