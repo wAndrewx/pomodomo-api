@@ -10,6 +10,7 @@ module.exports = (passport) => {
   passport.deserializeUser((id, done) => {
     pool.query(`SELECT * FROM users WHERE id = $1`, [id], (err, results) => {
       if (err) return done(err);
+      if (!results.rows[0]) return done(null, false);
       return done(null, results.rows[0]);
     });
   });
