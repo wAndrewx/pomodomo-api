@@ -16,7 +16,7 @@ const { pool } = require("./db/db");
 auth(passport);
 
 // Enable cors
-app.use(cors());
+app.use(cors({ credentials: true, origin: true }));
 
 // Use HTTP request logger middleware
 app.use(logger("dev"));
@@ -36,7 +36,7 @@ app.use(
       tableName: "session",
     }),
     secret: process.env.SESSION_SECRET,
-    resave: false,
+    resave: true, //check if you want this
     saveUninitialized: false,
     cookie: {
       secure: false,
@@ -53,6 +53,14 @@ app.use(passport.session());
 // Routes
 app.use("/", authRoutes);
 app.use("/profile", profileRoutes);
+
+if (
+  process.env.NODE_ENV.includes("dev") ||
+  process.env.NODE_ENV.includes("test")
+) {
+  const testingRoute = require("./routes/test");
+  app.use("/testing", testingRoute);
+}
 
 // Handle errors
 app.use((err, req, res, next) => {
