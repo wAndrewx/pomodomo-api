@@ -36,7 +36,7 @@ app.use(
       tableName: "session",
     }),
     secret: process.env.SESSION_SECRET,
-    resave: true, //check if you want this
+    resave: false,
     saveUninitialized: false,
     cookie: {
       secure: false,
