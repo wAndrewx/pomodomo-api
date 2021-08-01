@@ -29,8 +29,11 @@ $ npm test
 
 ## Features
   * Endpoints with Unit/Integration testing
-      * User registration using unique username  and password
+      * User registration using unique username and password
       * User login (including session maintenance)
+  * Test route for E2E testing
+      * Seeding data to local database
+       
 
 ## Tech/framework used
 #### Built with:                                                                 
