@@ -16,7 +16,7 @@ const { pool } = require("./db/db");
 auth(passport);
 
 // Enable cors
-app.use(cors());
+app.use(cors({ credentials: true, origin: "https://www.pomodomo.ca/" }));
 
 // Use HTTP request logger middleware
 app.use(logger("dev"));
@@ -53,6 +53,14 @@ app.use(passport.session());
 // Routes
 app.use("/", authRoutes);
 app.use("/profile", profileRoutes);
+
+if (
+  process.env.NODE_ENV.includes("dev") ||
+  process.env.NODE_ENV.includes("test")
+) {
+  const testingRoute = require("./routes/test");
+  app.use("/testing", testingRoute);
+}
 
 // Handle errors
 app.use((err, req, res, next) => {
