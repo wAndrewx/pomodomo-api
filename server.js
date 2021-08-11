@@ -16,7 +16,7 @@ const { pool } = require("./db/db");
 auth(passport);
 
 // Enable cors
-app.use(cors({ credentials: true, origin: true }));
+app.use(cors({ credentials: true, origin: "https://www.pomodomo.ca/" }));
 
 // Use HTTP request logger middleware
 app.use(logger("dev"));
